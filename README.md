@@ -18,6 +18,7 @@ npm install
 ```
  ### run
    uncomment the generator code in simpleChain.js
+   ```
      // (function theLoop (i) {
      //     let myBlockChain = new Blockchain();
      //     setTimeout( () => {
@@ -40,5 +41,5 @@ npm install
      // let myBlockChain = new Blockchain();
      //
      // myBlockChain.validateChain()
-
+```
 # private-blockchain-generator

@@ -55,7 +55,7 @@ class Blockchain{
         return new Promise( (resolve, reject) => {
             newBlock.time = new Date().getTime().toString().slice(0, -3);
             this.getBlockHeight().then((height) => {
-                 if (height === 0) {
+                 if (height < 1) {
                     console.log("addGenesisBlock" )
 
                     this.addGenesisBlock().then((block) => {
@@ -74,9 +74,9 @@ class Blockchain{
                 } else {
                     console.log("not GenesisBlock ")
 
-                    this.getBlock(height - 1).then((block) => {
+                    this.getBlock(height).then((block) => {
                          block = JSON.parse(block)
-                        newBlock.height = height ;
+                        newBlock.height = height + 1 ;
                         newBlock.previousBlockHash = block.hash
                         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
                          this.db.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then((block) => {
@@ -93,7 +93,12 @@ class Blockchain{
   // Get block height
     getBlockHeight(){
 
-     return this.db.getBlocksCount()
+     return this.db.getBlocksCount().then((count) => {
+         return new Promise( (resolve) => {
+             count  < 1 ? resolve(0):resolve(count - 1)
+
+         });
+     })
     }
 
     // get block
@@ -293,4 +298,4 @@ class LevelDB{
 // let myBlockChain = new Blockchain();
 //
 // myBlockChain.validateChain()
-
+//

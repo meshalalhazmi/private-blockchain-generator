@@ -33,13 +33,16 @@ npm install
      //     }, 1000);
      //
      // })(0);
-
-   run command: node simpleChain.js
+```
+ -  run command: node simpleChain.js
 
    to test the chain validity
      uncomment the validation code
+```
      // let myBlockChain = new Blockchain();
      //
      // myBlockChain.validateChain()
 ```
+ -  run command: node simpleChain.js
+
 # private-blockchain-generator

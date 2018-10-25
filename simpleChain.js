@@ -313,26 +313,25 @@ class LevelDB{
 
 
 // GENERATE BLOCKS
-// (function theLoop (i) {
-//     let myBlockChain = new Blockchain();
-//     setTimeout( () => {
-//         let blockTest = new Block("Test Block - " + (i + 1));
-//          myBlockChain.addBlock(blockTest).then(result => {
-//              console.log("result",result);
-//              i++;
-//              if (i < 3) theLoop(i);
-//          })
-//
-//
-//     }, 1000);
-//
-// })(0);
+(function theLoop (i) {
+    let myBlockChain = new Blockchain();
+    setTimeout( () => {
+        let blockTest = new Block("Test Block - " + (i + 1));
+         myBlockChain.addBlock(blockTest).then(result => {
+             console.log("result",result);
+             i++;
+             if (i < 3) theLoop(i);
+         })
 
-let myBlockChain = new Blockchain();
+
+    }, 1000);
+
+})(0);
+
 
 // test block validity
-
-myBlockChain.validateChain()
+//let myBlockChain = new Blockchain();
+// myBlockChain.validateChain()
 // myBlockChain.addGenesisBlock()
 
 

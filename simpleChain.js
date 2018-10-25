@@ -39,13 +39,21 @@ class Blockchain{
     }
 
   addGenesisBlock(){
-    let genesisBlock= new Block("First block in the chain - Genesis block");
-      genesisBlock.time = new Date().getTime().toString().slice(0,-3);
-      genesisBlock.hash = SHA256(JSON.stringify(genesisBlock)).toString();
 
-      return this.db.addLevelDBData(genesisBlock.height, JSON.stringify(genesisBlock).toString()).then(block => {
-          console.log(" Genesis Block Created and Added to the chain")
-            return block
+      return this.getBlockHeight().then(( height )=>{
+          console.log("block chain full height",height)
+            if(height <= 0){
+                let genesisBlock= new Block("First block in the chain - Genesis block");
+                genesisBlock.time = new Date().getTime().toString().slice(0,-3);
+                genesisBlock.hash = SHA256(JSON.stringify(genesisBlock)).toString();
+
+                return this.db.addLevelDBData(genesisBlock.height, JSON.stringify(genesisBlock).toString()).then(block => {
+                    console.log(" Genesis Block Created and Added to the chain")
+                    return block
+                })
+            }
+
+
       })
   }
 
@@ -91,11 +99,11 @@ class Blockchain{
   }
 
   // Get block height
-    getBlockHeight(){
+      getBlockHeight(){
 
      return this.db.getBlocksCount().then((count) => {
          return new Promise( (resolve) => {
-             count  < 1 ? resolve(0):resolve(count - 1)
+             count  < 1 ?  resolve(0):resolve(count - 1)
 
          });
      })
@@ -135,11 +143,13 @@ class Blockchain{
    // Validate blockchain
     compareTwoBlocks(firstBlock,secondBlock){
         return new Promise( (resolve, reject) => {
-             Promise.all([firstBlock,secondBlock]).then((results) => {
-                let firstBlock = JSON.stringify(results[0])
-                let secondBlock = JSON.stringify(results[1])
-                if (firstBlock.hash !== secondBlock.hash) {
-                    errorLog.push(i);
+             Promise.all([this.getBlock(firstBlock),this.getBlock(secondBlock)]).then((results) => {
+                let firstBlock = JSON.parse(results[0])
+                let secondBlock = JSON.parse(results[1])
+
+                 if (firstBlock.hash !== secondBlock.previousBlockHash) {
+                    console.log(`Block ${firstBlock.height} hash: ` ,firstBlock.hash , ` does not match Block ${secondBlock.height} hash: `,secondBlock.hash)
+                     resolve(false);
                 }
                 resolve(true);
 
@@ -152,8 +162,8 @@ class Blockchain{
 
         }
     validateChain(){
-        let errorLog = [];
-        let validateBlocks = []
+         let validateBlocks = []
+        let validateBlockChains = []
          this.getBlockHeight().then((height) => {
             console.log("block chain full height",height)
 
@@ -161,30 +171,53 @@ class Blockchain{
             for (let i = 0; i <= height ; i++) {
                 // validate individual blocks
                 validateBlocks.push(this.validateBlock(i))
-                // compare two blocks hashes ,, since we start with n , n+1 , we don't need to check the last block
-                if(i+1 <  height){
+                // com
+                // pare two blocks hashes ,, since we start with n , n+1 , we don't need to check the last block
+                if(i <  height){
                     // since compareTwoBlocks return promise , we can add the promise to validateBlocks and invoke all in Promise.all later
-                    validateBlocks.push(this.compareTwoBlocks(this.getBlock(i),this.getBlock(i+1)))
+                    validateBlockChains.push(this.compareTwoBlocks(i,i+1))
 
                 }
 
 
             }
-            Promise.all(validateBlocks).then((results) => {
-                  results.forEach(result => {
-                    if (!result) errorLog.push(i);
-                })
-                if (errorLog.length>0) {
-                    console.log('Block errors = ' + errorLog.length);
-                    console.log('Blocks: '+errorLog);
-                } else {
-                    console.log('No errors detected');
-                }
-            });
+             Promise.all(validateBlocks).then((results) => {
+                 let errorLog = []
+                 results.forEach((result,index )=> {
+                     if (!result) errorLog.push(index);
+                 })
+                 if (errorLog.length>0) {
+                     console.log('Block errors = ' + errorLog.length);
+                     console.log('Blocks: '+errorLog);
+                 } else {
+                     console.log('No errors detected');
+                 }
+             });
 
-        });
+             Promise.all(validateBlockChains).then((results) => {
+                 let errorLog = []
+                 results.forEach((result,index )=> {
 
 
+                     if (!result) {
+                         errorLog.push(index);
+
+                     }else{
+                         console.log(`Block ${index} hash matches Block ${index+1} hash: `)
+
+                     }
+                 })
+                 if (errorLog.length>0) {
+                     console.log('block chain is not valid');
+
+                 } else {
+                     console.log('block chain is  valid');
+                 }
+             });
+
+
+
+         });
 
     }
 
@@ -278,6 +311,8 @@ class LevelDB{
 }
 // add blocks to the chain
 
+
+// GENERATE BLOCKS
 // (function theLoop (i) {
 //     let myBlockChain = new Blockchain();
 //     setTimeout( () => {
@@ -293,9 +328,18 @@ class LevelDB{
 //
 // })(0);
 
-
-// test block validity
 let myBlockChain = new Blockchain();
 
-myBlockChain.validateChain()
+// test block validity
 
+myBlockChain.validateChain()
+// myBlockChain.addGenesisBlock()
+
+
+// // invalidate a block
+// myBlockChain.getBlock(5).then((block) => {    //grab a block
+//     block = JSON.parse(block);   // parse string to  JSON object
+//     block.body = "error";  // modify body
+//     block.hash = "error";  // modify body
+//     myBlockChain.db.addLevelDBData(5, JSON.stringify(block));  // reinsert in the same position
+// })

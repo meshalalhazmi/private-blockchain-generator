@@ -154,16 +154,16 @@ class Blockchain{
     validateChain(){
         let errorLog = [];
         let validateBlocks = []
-        let validateBlocksChain = []
-        this.getBlockHeight().then((height) => {
+         this.getBlockHeight().then((height) => {
             console.log("block chain full height",height)
 
 
-            for (var i = 0; i < height ; i++) {
-
+            for (let i = 0; i <= height ; i++) {
+                // validate individual blocks
                 validateBlocks.push(this.validateBlock(i))
-
+                // compare two blocks hashes ,, since we start with n , n+1 , we don't need to check the last block
                 if(i+1 <  height){
+                    // since compareTwoBlocks return promise , we can add the promise to validateBlocks and invoke all in Promise.all later
                     validateBlocks.push(this.compareTwoBlocks(this.getBlock(i),this.getBlock(i+1)))
 
                 }
@@ -295,7 +295,7 @@ class LevelDB{
 
 
 // test block validity
-// let myBlockChain = new Blockchain();
-//
-// myBlockChain.validateChain()
-//
+let myBlockChain = new Blockchain();
+
+myBlockChain.validateChain()
+
